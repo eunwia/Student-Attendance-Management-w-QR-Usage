@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% set page = "login" %}
+{% block content %}
+
+<div style="min-height: 80vh; display: flex; justify-content: center; align-items: center;">
+
+    <div class="w3-mobile w3-card-4 w3-padding w3-round-xlarge w3-animate-top" 
+         style="min-height:400px; max-width: 400px; width:100%;">
+
+        <center>
+            <div class="w3-text-indigo">
+                <h3>ADMIN LOGIN</h3>
+            </div>
+        </center>
+
+        <hr>
+        <br>
+
+        {% if error %}
+        <div class="w3-panel w3-red w3-round">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/login" method="POST" class="w3-container">
+
+            <input class="w3-input w3-border w3-margin-bottom" type="text" name="email" placeholder="Email" required>
+            <br>
+            <input class="w3-input w3-border w3-margin-bottom" type="password" name="password" placeholder="********" required>
+
+            <br>
+            <button class="w3-button w3-indigo w3-block w3-round" type="submit">
+                LOGIN
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+	<script>
+		if (window.history.replaceState) {
+			window.history.replaceState(null, null, window.location.href);
+		}
+	</script>
+
+{% endblock %}

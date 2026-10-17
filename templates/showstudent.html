@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+	<br>
+	<div class="w3-container w3-padding-16 w3-card-4">
+		<table class="w3-table-all">
+			<tr><td><b>IDNO</b></td><td>{{ student['idno'] }}</td></tr>
+			<tr><td><b>LASTNAME</b></td><td>{{ student['lastname'] }}</td></tr>
+			<tr><td><b>FIRSTNAME</b></td><td>{{ student['firstname'] }}</td></tr>
+			<tr><td><b>COURSE</b></td><td>{{ student['course'] }}</td></tr>
+			<tr><td><b>LEVEL</b></td><td>{{ student['level'] }}</td></tr>
+		</table>
+	</div>
+{% endblock %}

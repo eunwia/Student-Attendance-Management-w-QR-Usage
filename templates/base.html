@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1.0">
+		<link rel="stylesheet" href="{{ url_for('static',filename='css/w3.css') }}">
+		<title>Finals Project</title>
+	</head>
+	<body>
+		<div class="w3-bar w3-indigo w3-container w3-padding">
+			<span class="w3-bar-item w3-large">Python(20420) 10:30 - 12:01 MW</span>
+			
+			 {% if header_button %}
+			<a href="{{ header_button.href }}" class="w3-bar-item w3-button w3-light-indigo w3-right w3-round">
+				{{ header_button.text }}
+			</a>
+			{% endif %}
+		</div>
+		
+		<div class="w3-container" style="padding:0;">
+			{% block content %}
+			{% endblock %}
+			<center>
+				<hr/>
+				Copyright &copy; Montallana & Ramos, 2025 
+			</center>
+		</div>
+		<div id="logoutModal" class="w3-modal">
+			<div class="w3-modal-content w3-round-large w3-animate-top" style="max-width:400px">
+
+				<header class="w3-container w3-indigo w3-round-large">
+					<h4 class="w3-center">Logout Confirmation</h4>
+				</header>
+
+				<div class="w3-container w3-padding">
+					<p class="w3-center">Are you sure you want to logout?</p>
+
+					<div class="w3-center">
+						<button onclick="confirmLogout()" class="w3-button w3-red w3-round w3-margin-right">
+							OK
+						</button>
+
+						<button onclick="closeLogoutModal()" class="w3-button w3-gray w3-round">
+							Cancel
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<script>
+function openLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'block';
+}
+
+function closeLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+}
+
+function confirmLogout() {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/logout";
+
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+
+<script>
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+</script>
+
+	</body>
+</html>

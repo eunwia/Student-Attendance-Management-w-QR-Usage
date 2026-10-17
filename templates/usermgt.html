@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% set page = "usermgt" %}
+
+{% block content %}
+<div class="w3-row">
+
+    <!-- Sidebar -->
+    <div class="w3-col s3 m2 l2 w3-blue w3-padding-large" style="min-height: 720px;">
+
+        <a href="/usermgt" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">USER MNGT</a>
+        <a href="/studentmgt" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">STUDENT MNGT</a>
+        <a href="/viewattendance" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">VIEW ATTENDANCE</a>
+        <button onclick="openLogoutModal()" class="w3-button w3-blue">
+            LOGOUT
+        </button>
+    </div>
+
+    <div class="w3-col s9 m10 l10 w3-padding">
+
+        <h4 class="w3-text-grey">USER MANAGEMENT</h4>
+
+        <div class="w3-row-padding">
+
+            <form id="addAdminForm" class="w3-col s4 w3-card w3-padding w3-round-large" style="min-height:660px;">
+                <br><br>
+                <input class="w3-input w3-border w3-margin-bottom" name="name" placeholder="Name" required>
+                <br><br>
+                <input class="w3-input w3-border w3-margin-bottom" name="email" placeholder="Email" required>
+                <br><br>
+                <input class="w3-input w3-border w3-margin-bottom" name="password" placeholder="Password" required>
+				<br>
+                <button class="w3-button w3-indigo w3-margin-top w3-right" type="button" onclick="saveAdmin()">
+					SAVE
+				</button>
+
+
+                <button id="cancelBtn" type="button" 
+                        class="w3-button w3-blue w3-margin-top w3-right w3-margin-right">
+                    CANCEL
+                </button>
+            </form>
+
+            <div class="w3-col s8">
+                <table class="w3-table-all w3-hoverable" id="adminTable">
+                    <tr class="w3-indigo">
+                        <th>ID</th>
+                        <th>NAME</th>
+                        <th>EMAIL</th>
+                        <th>PASSWORD</th>
+                        <th>ACTION</th>
+                    </tr>
+
+                    {% for adm in admins %}
+                    <tr>
+                        <td>{{ adm.id }}</td>
+                        <td>{{ adm.name }}</td>
+                        <td>{{ adm.email }}</td>
+                        <td>{{ adm.password }}</td>
+                        <td>
+                            <button class="w3-button w3-white w3-border w3-round editBtn">✏️</button>
+                            <button class="w3-button w3-white w3-border w3-round deleteBtn">🗑️</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+document.getElementById("cancelBtn").addEventListener("click", () => {
+    const form = document.getElementById("addAdminForm");
+    form.reset();
+    form.removeAttribute("data-edit-id");
+    form.querySelector("button[type='submit']").textContent = "SAVE";
+});
+
+
+document.getElementById("adminTable").addEventListener("click", function(e) {
+    const target = e.target;
+    const row = target.closest("tr");
+    if (!row) return;
+
+    const adminId = row.children[0].textContent;
+
+    if (target.classList.contains("editBtn")) {
+        const form = document.getElementById("addAdminForm");
+
+        form.name.value = row.children[1].textContent;
+        form.email.value = row.children[2].textContent;
+        form.password.value = row.children[3].textContent;
+
+        form.setAttribute("data-edit-id", adminId);
+        form.querySelector("button[type='submit']").textContent = "UPDATE";
+    }
+
+    if (target.classList.contains("deleteBtn")) {
+        if (confirm("Are you sure you want to delete this admin?")) {
+            fetch("/deleteadmin", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `id=${adminId}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    row.remove();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+    }
+});
+
+
+document.getElementById("addAdminForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const editId = form.getAttribute("data-edit-id");
+    let url = "/addadmin";
+
+    if (editId) {
+        formData.append("id", editId);
+        url = "/updateadmin";
+    }
+
+    fetch(url, {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.message);
+            return;
+        }
+
+        alert(data.message);
+
+        const table = document.getElementById("adminTable");
+
+        if (editId) {
+            for (let row of table.rows) {
+                if (row.children[0].textContent === editId) {
+                    row.children[1].textContent = data.admin.name;
+                    row.children[2].textContent = data.admin.email;
+                    row.children[3].textContent = data.admin.password;
+                }
+            }
+
+        } else {
+            let row = table.insertRow(-1);
+            row.innerHTML = `
+                <td>${data.admin.id}</td>
+                <td>${data.admin.name}</td>
+                <td>${data.admin.email}</td>
+                <td>${data.admin.password}</td>
+                <td>
+                    <button class="w3-button w3-white w3-border w3-round editBtn">✏️</button>
+                    <button class="w3-button w3-white w3-border w3-round deleteBtn">🗑️</button>
+                </td>
+            `;
+        }
+
+        form.reset();
+        form.removeAttribute("data-edit-id");
+        form.querySelector("button[type='submit']").textContent = "SAVE";
+    });
+});
+
+</script>
+<script>
+function saveAdmin() {
+    const form = document.getElementById("addAdminForm");
+
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const password = form.password.value.trim();
+
+    if (!name || !email || !password) {
+        alert("All fields are required");
+        return;
+    }
+
+    const editId = form.getAttribute("data-edit-id");
+
+    let url = "/addadmin";
+    let body = `name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+
+    // 🔥 IF EDIT MODE → UPDATE
+    if (editId) {
+        url = "/updateadmin";
+        body += `&id=${editId}`;
+    }
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: body
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.message);
+            return;
+        }
+
+        alert(data.message);
+
+        const table = document.getElementById("adminTable");
+
+        if (editId) {
+            // UPDATE ROW
+            for (let row of table.rows) {
+                if (row.children[0].textContent === editId) {
+                    row.children[1].textContent = data.admin.name;
+                    row.children[2].textContent = data.admin.email;
+                    row.children[3].textContent = data.admin.password;
+                }
+            }
+        } else {
+            // ADD ROW
+            let row = table.insertRow(-1);
+            row.innerHTML = `
+                <td>${data.admin.id}</td>
+                <td>${data.admin.name}</td>
+                <td>${data.admin.email}</td>
+                <td>${data.admin.password}</td>
+                <td>
+                    <button class="w3-button w3-white w3-border w3-round editBtn">✏️</button>
+                    <button class="w3-button w3-white w3-border w3-round deleteBtn">🗑️</button>
+                </td>
+            `;
+        }
+
+        // RESET FORM STATE
+        form.reset();
+        form.removeAttribute("data-edit-id");
+    })
+    .catch(err => {
+        alert("Server error");
+        console.error(err);
+    });
+}
+</script>
+{% endblock %}

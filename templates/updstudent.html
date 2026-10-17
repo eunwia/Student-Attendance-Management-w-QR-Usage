@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.update-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin-top: 25px;
+}
+
+.container-box {
+    width: 480px;
+    min-height: 750px;
+    padding-bottom: 20px;
+}
+
+#camera {
+    width: 40%;
+    height: 150px;
+    background: #000;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+#previewPhoto {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+}
+</style>
+
+<div class="update-wrapper w3-animate-opacity">
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="w3-card w3-padding w3-round-large container-box">
+
+            <h4 class="w3-text-indigo">Update Student</h4>
+            <hr class="w3-small">
+
+            <center>
+                <video id="camera" autoplay></video>
+                <canvas id="snapshotCanvas" style="display:none;"></canvas>
+            </center>
+
+            <br>
+
+            <label>ID Number</label>
+            <input class="w3-input w3-border w3-round" name="idno"
+                   value="{{ student.idno }}" readonly>
+            <br>
+
+            <label>Last Name</label>
+            <input class="w3-input w3-border w3-round" name="lastname"
+                   value="{{ student.lastname }}">
+            <br>
+
+            <label>First Name</label>
+            <input class="w3-input w3-border w3-round" name="firstname"
+                   value="{{ student.firstname }}">
+            <br>
+
+            <!-- COURSE SELECT -->
+            <label>COURSE</label>
+            <select class="w3-input w3-border w3-round" name="course" required>
+                <option value="">Select Course</option>
+                <option value="BSIT"  {% if student.course == "BSIT" %}selected{% endif %}>BSIT</option>
+                <option value="BSCS"  {% if student.course == "BSCS" %}selected{% endif %}>BSCS</option>
+                <option value="BSCPE" {% if student.course == "BSCPE" %}selected{% endif %}>BSCPE</option>
+                <option value="BSCRIM"{% if student.course == "BSCRIM" %}selected{% endif %}>BSCRIM</option>
+            </select>
+            <br>
+
+            <!-- LEVEL SELECT -->
+            <label>LEVEL</label>
+            <select class="w3-input w3-border w3-round" name="level" required>
+                <option value="">Select Level</option>
+                <option value="1" {% if student.level == "1" %}selected{% endif %}>1</option>
+                <option value="2" {% if student.level == "2" %}selected{% endif %}>2</option>
+                <option value="3" {% if student.level == "3" %}selected{% endif %}>3</option>
+                <option value="4" {% if student.level == "4" %}selected{% endif %}>4</option>
+            </select>
+
+            <div class="w3-right w3-margin-top">
+                <button type="button" onclick="snapUpdate()"
+                        class="w3-button w3-blue w3-round w3-margin-right">SNAP</button>
+
+                <button class="w3-button w3-indigo w3-round">SAVE</button>
+            </div>
+
+        </div>
+    </form>
+
+    <div class="w3-card w3-round-large w3-padding container-box">
+        <h4 class="w3-text-indigo">Student Information</h4>
+        <hr class="w3-small">
+
+        <div style="display:flex; justify-content:center; gap:40px; margin-top:20px;">
+            <div style="text-align:center;">
+                <img id="previewPhoto"
+                     src="/static/images/{{ student.image }}"
+                     class="w3-circle w3-border">
+                <div class="w3-small w3-margin-top"><b>Photo</b></div>
+            </div>
+
+            <div style="text-align:center;">
+                <img src="/static/qrcode/{{ student.qrcode }}"
+                     width="150" height="150"
+                     style="background:white; padding:5px; border-radius:8px;">
+                <div class="w3-small w3-margin-top"><b>QR Code</b></div>
+            </div>
+        </div>
+
+        <div style="margin-top:30px; padding:0 20px; font-size:17px;">
+            <p><b>ID Number:</b><br><span id="p_idno">{{ student.idno }}</span></p>
+            <p><b>Name:</b><br><span id="p_name">{{ student.lastname }}, {{ student.firstname }}</span></p>
+            <p><b>Course:</b><br><span id="p_course">{{ student.course }}</span></p>
+            <p><b>Level:</b><br><span id="p_level">{{ student.level }}</span></p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+        document.getElementById('camera').srcObject = stream;
+    });
+
+function snapUpdate() {
+    let video = document.getElementById("camera");
+    let canvas = document.getElementById("snapshotCanvas");
+    let ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    let imageData = canvas.toDataURL("image/png");
+    document.getElementById("previewPhoto").src = imageData;
+
+    fetch(imageData)
+        .then(res => res.blob())
+        .then(blob => {
+            let file = new File([blob], "snapshot.png", { type: "image/png" });
+
+            let oldInput = document.getElementById("image_file_input");
+            if (oldInput) oldInput.remove();
+
+            let hiddenInput = document.createElement("input");
+            hiddenInput.type = "file";
+            hiddenInput.name = "image_file";
+            hiddenInput.id = "image_file_input";
+
+            hiddenInput.style.display = "none";
+
+            let dt = new DataTransfer();
+            dt.items.add(file);
+            hiddenInput.files = dt.files;
+
+            document.querySelector("form").appendChild(hiddenInput);
+        });
+
+    document.getElementById("p_idno").textContent =
+        document.querySelector("input[name='idno']").value;
+
+    document.getElementById("p_name").textContent =
+        document.querySelector("input[name='lastname']").value + ", " +
+        document.querySelector("input[name='firstname']").value;
+
+    document.getElementById("p_course").textContent =
+        document.querySelector("select[name='course']").value;
+
+    document.getElementById("p_level").textContent =
+        document.querySelector("select[name='level']").value;
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% set page = "addstudent" %}
+{% block content %}
+
+<style>
+.container-box {
+    height: 710px;
+    width: 500px;
+    overflow: hidden;
+}
+
+/* CENTER BOTH CONTAINERS */
+.w3-row-padding {
+    display: flex;
+    justify-content: center;
+    gap: 20px !important;
+}
+.w3-col {
+    width: auto !important;
+    padding: 0 !important;
+}
+
+/* Webcam styling */
+#camera {
+    width: 40%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Photo preview styling */
+#previewPhoto {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+}
+
+/* Picture + QR beside each other */
+.side-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+}
+
+/* Hide QR until SNAP */
+#qrContainer {
+    display: none;
+}
+</style>
+
+<div class="w3-row-padding">
+
+    <!-- LEFT SIDE -->
+    <div class="w3-col s6">
+        <div class="w3-card w3-padding w3-round-large container-box w3-margin-top">
+            <br>
+            <center>
+                <video id="camera" autoplay playsinline class="w3-border w3-round"></video>
+            </center>
+
+            <br>
+
+            <label>ID NUMBER</label>
+            <input class="w3-input w3-border" id="idno" name="idno" required><br>
+
+            <label>LASTNAME</label>
+            <input class="w3-input w3-border" id="lastname" required><br>
+
+            <label>FIRSTNAME</label>
+            <input class="w3-input w3-border" id="firstname" required><br>
+
+            <label>COURSE</label>
+            <select class="w3-input w3-border" id="course" required>
+                <option value="">Select Course</option>
+                <option value="BSIT">BSIT</option>
+                <option value="BSCS">BSCS</option>
+                <option value="BSCPE">BSCPE</option>
+                <option value="BSCRIM">BSCRIM</option>
+            </select><br>
+
+            <label>LEVEL</label>
+            <select class="w3-input w3-border" id="level" required>
+                <option value="">Select Level</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+
+            <br>
+            <div class="w3-row">
+                <button class="w3-button w3-blue w3-right w3-margin-left" id="cancelLeftBtn">CANCEL</button>
+                <button class="w3-button w3-blue w3-right w3-margin-left" id="snapBtn" disabled>SNAP</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="w3-col s6">
+        <div class="w3-card w3-padding w3-round-large container-box w3-margin-top">
+            <br>
+            <div class="side-flex">
+                <img id="previewPhoto"
+                     src="https://static.vecteezy.com/system/resources/previews/007/319/933/non_2x/black-avatar-person-icons-user-profile-icon-vector.jpg"
+                     class="w3-circle w3-border">
+
+                <div id="qrContainer">
+                    <div id="qrOutput"></div>
+                </div>
+            </div>
+
+            <br><br>
+
+            <label>IDNO</label>
+            <div class="w3-padding w3-light-grey w3-round" id="p_idno"></div><br>
+
+            <label>LASTNAME</label>
+            <div class="w3-padding w3-light-grey w3-round" id="p_lastname"></div><br>
+
+            <label>FIRSTNAME</label>
+            <div class="w3-padding w3-light-grey w3-round" id="p_firstname"></div><br>
+
+            <label>COURSE</label>
+            <div class="w3-padding w3-light-grey w3-round" id="p_course"></div><br>
+
+            <label>LEVEL</label>
+            <div class="w3-padding w3-light-grey w3-round" id="p_level"></div>
+
+            <div class="w3-row">
+                <button class="w3-button w3-blue w3-right w3-margin-top w3-margin-left" id="retakeBtn">RETAKE</button>
+                <button class="w3-button w3-green w3-right w3-margin-top w3-margin-left" id="saveBtn">SAVE</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form -->
+<form id="saveForm" method="POST" action="/addstudent" enctype="multipart/form-data" style="display:none;">
+    <input type="hidden" name="idno" id="f_idno">
+    <input type="hidden" name="lastname" id="f_lastname">
+    <input type="hidden" name="firstname" id="f_firstname">
+    <input type="hidden" name="course" id="f_course">
+    <input type="hidden" name="level" id="f_level">
+    <input type="file" name="image_file" id="image_file" style="display:none;">
+</form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+const video = document.getElementById("camera");
+
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => {
+        video.srcObject = stream;
+        video.play();
+    })
+    .catch(err => {
+        alert("Camera access blocked or unavailable.");
+        console.error(err);
+    });
+
+const snapBtn = document.getElementById("snapBtn");
+const previewPhoto = document.getElementById("previewPhoto");
+
+function checkFields() {
+    const filled = ["idno","lastname","firstname","course","level"]
+        .every(id => document.getElementById(id).value.trim() !== "");
+    snapBtn.disabled = !filled;
+}
+
+document.querySelectorAll("#idno, #lastname, #firstname, #course, #level")
+    .forEach(el => el.addEventListener("input", checkFields));
+
+function resetPreview() {
+    ["idno","lastname","firstname","course","level"].forEach(id => document.getElementById(id).value = "");
+    ["p_idno","p_lastname","p_firstname","p_course","p_level"].forEach(id => document.getElementById(id).innerText = "");
+    previewPhoto.src = "https://static.vecteezy.com/system/resources/previews/007/319/933/non_2x/black-avatar-person-icons-user-profile-icon-vector.jpg";
+    document.getElementById("qrContainer").style.display = "none";
+    document.getElementById("qrOutput").innerHTML = "";
+    document.getElementById("image_file").value = "";
+    ["f_idno","f_lastname","f_firstname","f_course","f_level"].forEach(id => document.getElementById(id).value = "");
+    snapBtn.disabled = true;
+}
+
+document.getElementById("cancelLeftBtn").addEventListener("click", e => {
+    e.preventDefault();
+    resetPreview();
+});
+
+document.getElementById("retakeBtn").addEventListener("click", resetPreview);
+
+snapBtn.addEventListener("click", function () {
+    let canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, 200, 200);
+
+    canvas.toBlob(blob => {
+        const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById("image_file").files = dt.files;
+        previewPhoto.src = URL.createObjectURL(blob);
+        fillPreview();
+        document.getElementById("qrContainer").style.display = "block";
+    }, "image/jpeg", 0.7);
+});
+
+function fillPreview() {
+    let idno = document.getElementById("idno").value.trim();
+
+    document.getElementById("p_idno").innerText = idno;
+    document.getElementById("p_lastname").innerText = lastname.value;
+    document.getElementById("p_firstname").innerText = firstname.value;
+    document.getElementById("p_course").innerText = course.value;
+    document.getElementById("p_level").innerText = level.value;
+
+    document.getElementById("qrOutput").innerHTML = "";
+    new QRCode(document.getElementById("qrOutput"), {
+        text: idno,
+        width: 130,
+        height: 130
+    });
+
+    f_idno.value = idno;
+    f_lastname.value = lastname.value;
+    f_firstname.value = firstname.value;
+    f_course.value = course.value;
+    f_level.value = level.value;
+}
+
+document.getElementById("saveBtn").addEventListener("click", function () {
+    if (!f_idno.value.trim()) {
+        alert("Please SNAP the photo first before saving.");
+        return;
+    }
+    document.getElementById("saveForm").submit();
+});
+</script>
+
+{% if duplicate_idno %}
+<div id="duplicateModal" class="w3-modal" style="display:block;">
+  <div class="w3-modal-content w3-round-large w3-animate-top"
+       style="max-width:350px; margin:auto; top:20%; transform:translateY(-50%);">
+      <header class="w3-container w3-red">
+          <h5 class="w3-center">ERROR</h5>
+      </header>
+      <div class="w3-container w3-padding">
+          <p class="w3-center">IDNO already exists!</p>
+      </div>
+      <footer class="w3-container w3-padding w3-center">
+          <button class="w3-button w3-red w3-round" onclick="document.getElementById('duplicateModal').style.display='none'">OK</button>
+      </footer>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+.view-card {
+    width: 450px;
+    margin: auto;
+    padding: 30px;
+    border: 1px solid #ccc;
+}
+
+.photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+</style>
+
+<br><br>
+{% if request.args.get("already") == "true" %}
+		<div class="w3-panel w3-green w3-round w3-padding-16 w3-margin-right w3-margin-left">
+			<center>This student has already taken attendance today.</center>
+		</div>
+{% endif %}
+<div class="view-card w3-center">
+    {% if found %}
+        <img src="/static/images/{{ student.image }}" class="w3-circle photo">
+    {% else %}
+		<br>
+		<th><b>STUDENT NOT FOUND</b></th> 
+		<br><br>
+        <img src="https://static.vecteezy.com/system/resources/previews/007/319/933/non_2x/black-avatar-person-icons-user-profile-icon-vector.jpg"
+             class="w3-circle photo">
+    {% endif %}
+
+    <br><br>
+
+    <table class="w3-table-all">
+        <tr><th>IDNO</th><td>{{ student.idno }}</td></tr>
+        <tr><th>LASTNAME</th><td>{{ student.lastname }}</td></tr>
+        <tr><th>FIRSTNAME</th><td>{{ student.firstname }}</td></tr>
+        <tr><th>COURSE</th><td>{{ student.course }}</td></tr>
+        <tr><th>LEVEL</th><td>{{ student.level }}</td></tr>
+    </table>
+
+    <br>
+
+    {% if found %}
+        <img src="/static/qrcode/{{ student.qrcode }}" width="130">
+    {% endif %}
+
+</div>
+<script>
+setTimeout(() => {
+    window.location.href = "/";
+}, 2000);
+</script>
+
+{% endblock %}

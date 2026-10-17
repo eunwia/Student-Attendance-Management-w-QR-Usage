@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% set page = "studentmgt" %}
+
+{% block content %}
+<div class="w3-row">
+
+    <div class="w3-col s3 m2 l2 w3-blue w3-padding-large" style="min-height: 720px;">
+        <a href="/usermgt" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">USER MNGT</a>
+        <a href="/studentmgt" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">STUDENT MNGT</a>
+        <a href="/viewattendance" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">VIEW ATTENDANCE</a>
+		<button onclick="openLogoutModal()" class="w3-button w3-blue">
+			LOGOUT
+		</button>
+    </div>
+
+    <div class="w3-col s9 m10 l10 w3-padding">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h4 class="w3-text-grey" style="margin:0;">STUDENT MANAGEMENT</h4>
+
+            <a href="/addstudent" class="w3-button w3-green w3-round-large">
+                + ADD STUDENT
+            </a>
+        </div>
+
+
+        <div class="w3-row-padding">
+
+            <div class="w3-col s4">
+                <div class="w3-card w3-padding w3-round-large" style="min-height:660px;">
+                    <br>
+                    <center>
+                        <img id="stud_photo"
+                             src="https://static.vecteezy.com/system/resources/previews/007/319/933/non_2x/black-avatar-person-icons-user-profile-icon-vector.jpg"
+                             width="150"
+                             class="w3-square"><br><br>
+                    </center>
+
+                    <label class="w3-small w3-text-grey">ID NUMBER</label>
+                    <div id="stud_id" class="w3-padding w3-light-grey w3-round w3-margin-bottom"></div>
+
+                    <label class="w3-small w3-text-grey">NAME</label>
+                    <div id="stud_name" class="w3-padding w3-light-grey w3-round w3-margin-bottom"></div>
+
+                    <label class="w3-small w3-text-grey">COURSE - LEVEL</label>
+                    <div id="stud_course" class="w3-padding w3-light-grey w3-round w3-margin-bottom"></div>
+
+                    <label class="w3-small w3-text-grey">QR CODE</label>
+                    <div id="stud_qr" class="w3-padding w3-white w3-round" style="height:130px;">
+                        <center>
+                            <img id="stud_qr_img" src="" width="120">
+                        </center>
+                    </div>
+
+                    <div class="w3-row">
+                        <button id="updateBtn" class="w3-button w3-indigo w3-right w3-margin-left" onclick="updateStudent()">
+                            UPDATE
+                        </button>
+                        <button id="cancelBtn" class="w3-button w3-blue w3-right w3-margin-left">CANCEL</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="w3-col s8">
+                <table class="w3-table-all w3-hoverable">
+                    <tr class="w3-indigo">
+                        <th>IDNO</th>
+                        <th>LASTNAME</th>
+                        <th>FIRSTNAME</th>
+                        <th>COURSE</th>
+                        <th>LEVEL</th>
+                        <th>ACTION</th>
+                    </tr>
+
+                    {% for s in students %}
+                    <tr onclick="previewStudent(
+                        '{{ s.idno }}',
+                        '{{ s.lastname }}',
+                        '{{ s.firstname }}',
+                        '{{ s.course }}',
+                        '{{ s.level }}',
+                        '{{ s.image }}',
+                        '{{ s.qrcode }}'
+                    )">
+
+                        <td>{{ s.idno }}</td>
+                        <td>{{ s.lastname }}</td>
+                        <td>{{ s.firstname }}</td>
+                        <td>{{ s.course }}</td>
+                        <td>{{ s.level }}</td>
+                        <td>
+                            <button class="w3-button w3-white w3-border w3-round">👁️</button>
+                            <button class="w3-button w3-white w3-border w3-round delete-btn" data-id="{{ s.idno }}">✖</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function previewStudent(idno, ln, fn, course, level, image, qrcode) {
+    document.getElementById("stud_id").textContent = idno;
+    document.getElementById("stud_name").textContent = ln + ", " + fn;
+    document.getElementById("stud_course").textContent = course + " - " + level;
+
+    if (image) {
+        document.getElementById("stud_photo").src = "/static/images/" + image;
+    } else {
+        document.getElementById("stud_photo").src =
+            "https://static.vecteezy.com/system/resources/previews/007/319/933/non_2x/black-avatar-person-icons-user-profile-icon-vector.jpg";
+    }
+
+    if (qrcode) {
+        document.getElementById("stud_qr_img").src = "/static/qrcode/" + qrcode;
+    } else {
+        document.getElementById("stud_qr_img").src = "";
+    }
+}
+
+function updateStudent() {
+    let id = document.getElementById("stud_id").textContent;
+
+    if (!id) {
+        alert("Please select a student first!");
+        return;
+    }
+
+    window.location.href = "/updatestudent?id=" + id;
+}
+
+document.getElementById("cancelBtn").addEventListener("click", function () {
+    document.getElementById("stud_id").textContent = "";
+    document.getElementById("stud_name").textContent = "";
+    document.getElementById("stud_course").textContent = "";
+    document.getElementById("stud_photo").src =
+        "https://static.vecteezy.com/system/resources/previews/007/319/933/non_2x/black-avatar-person-icons-user-profile-icon-vector.jpg";
+    document.getElementById("stud_qr_img").src = "";
+});
+
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("delete-btn")) {
+        e.stopPropagation();
+
+        let id = e.target.getAttribute("data-id");
+        let row = e.target.closest("tr");
+
+        if (confirm("Are you sure you want to delete this student?")) {
+            fetch("/deletestudent", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `idno=${id}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    row.remove();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+    }
+});
+</script>
+
+{% endblock %}

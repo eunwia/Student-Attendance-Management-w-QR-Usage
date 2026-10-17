@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% set page = "index" %}
+{% block content %}
+
+<style>
+/* Center the scanner perfectly */
+.scanner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 150px);
+}
+</style>
+
+<div class="scanner-container">
+    <div id="reader" style="width: 500px;"></div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+const qrReader = new Html5Qrcode("reader");
+
+qrReader.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+
+    qrCodeMessage => {
+        const idno = qrCodeMessage.trim();
+
+        fetch("/scan?idno=" + idno)
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.already) {
+                    alert("This student has already taken attendance");
+                }
+
+                window.location.href =
+                    "/studview?idno=" + idno +
+                    "&found=" + data.found +
+                    (data.already ? "&already=true" : "");
+            });
+    },
+
+    errorMessage => {
+        // ignore scan errors
+    }
+);
+</script>
+
+{% endblock %}

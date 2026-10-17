@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% set page = "viewattendance" %}
+
+{% block content %}
+
+<div class="w3-row">
+    <div class="w3-col s3 m2 l2 w3-blue w3-padding-large" style="min-height: 720px;">
+        <a href="/usermgt" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">USER MNGT</a>
+        <a href="/studentmgt" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">STUDENT MNGT</a>
+        <a href="/viewattendance" class="w3-button w3-block w3-left-align w3-blue w3-margin-bottom">VIEW ATTENDANCE</a>
+		<button onclick="openLogoutModal()" class="w3-button w3-blue">
+			LOGOUT
+		</button>
+
+    </div>
+	
+	<div class="w3-col s9 m10 l10 w3-padding">
+		<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+			<h4 class="w3-text-grey" style="margin:0;">VIEW ATTENDANCE</h4>
+
+			<div style="display:flex; align-items:center; gap:10px;">
+				<h4 class="w3-text-grey" style="margin:0;">SELECT DATE</h4>
+				<input type="date" id="attendanceDate" class="w3-input w3-border w3-round" style="width:200px;">
+				<button class="w3-button w3-blue w3-round" id="goBtn">GO</button>
+			</div>
+
+		</div>
+
+	
+		<table class="w3-table-all w3-hoverable">
+			<tr class="w3-indigo">
+				<th>#</th>
+				<th>IDNO</th>
+				<th>LASTNAME</th>
+				<th>FIRSTNAME</th>
+				<th>COURSE</th>
+				<th>LEVEL</th>
+				<th>TIME-IN</th>
+			</tr>
+			{% for row in attendance %}
+				<tr>
+					<td>{{ loop.index }}</td>
+					<td>{{ row.idno }}</td>
+					<td>{{ row.lastname }}</td>
+					<td>{{ row.firstname }}</td>
+					<td>{{ row.course }}</td>
+					<td>{{ row.level }}</td>
+					<td>{{ row.time_in }}</td>
+				</tr>
+			{% endfor %}
+		</table>
+	</div>
+</div>
+<script>
+document.getElementById("goBtn").addEventListener("click", function() {
+    const date = document.getElementById("attendanceDate").value;
+    if (!date) {
+        alert("Please select a date!");
+        return;
+    }
+    window.location.href = "/viewattendance?date=" + date;
+});
+</script>
+{% endblock %}
